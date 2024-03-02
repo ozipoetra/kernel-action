@@ -1,4 +1,4 @@
-name: Build Kernel
+name: Build Kernel-NoKSU
 
 on:
   workflow_dispatch:
@@ -10,31 +10,31 @@ jobs:
     - name: Checkout kernel source
       uses: actions/checkout@v4
       with:
-        repository: mitsu00/KucingPoi
-        ref: stable
+        repository: mitsu00/android_kernel_xiaomi_mt6768
+        ref: miui
         token: ${{ secrets.MITSU_TOKEN }}
         path: ${{ github.workspace }}
   
     - name: Checkout clang compiler
       run: |
         cd ${{ github.workspace }}
-        # git -c protocol.version=2 clone https://gitlab.com/LeCmnGend/proton-clang.git --no-tags --no-recurse-submodules --depth=1 -b clang-r510928 toolchains/proton-clang
-        mkdir -p toolchains/proton-clang
-        cd toolchains/proton-clang
-        wget -q -i <(curl -Ls https://raw.githubusercontent.com/ZyCromerZ/Clang/main/Clang-main-link.txt)
-        tar -xzf Clang*
-        rm Clang*
+        git -c protocol.version=2 clone https://gitlab.com/LeCmnGend/proton-clang.git --no-tags --no-recurse-submodules --depth=1 -b clang-r510928 toolchains/proton-clang
   
-    - name: KernelSU Patch
+    - name: No KernelSU
       run: |
         cd ${{ github.workspace }}
-        curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
+        sed -i 's/CONFIG_KSU=y/CONFIG_KSU=n/g' arch/arm64/configs/merlin_defconfig
 
     - name: Checkout zipper
       uses: actions/checkout@v4
       with:
         repository: osm0sis/AnyKernel3
         path: ${{ github.workspace }}/AnyKernel3
+
+    - name: ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        create-symlink: true
 
     - name: Android kernel build
       run: |
@@ -73,12 +73,12 @@ jobs:
         cp out/arch/arm64/boot/dtbo.img AnyKernel3/
         cp out/arch/arm64/boot/dts/mediatek/mt6768.dtb AnyKernel3/dtb
         cd AnyKernel3
-        zip [MIUI-12.5]KucingPoi-KernelSU-$(date "+%Y-%m-%d--%H:%M:%S").zip * -r
+        zip [MIUI-12.5]KucingPoi-$(date "+%Y-%m-%d--%H:%M:%S").zip * -r
         
     - name: Release build
       uses: appleboy/telegram-action@master
       with:
         to: ${{ secrets.CHANNEL_ID }}
         token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        message: Kernel Built with ZyCromerZ-clang 19 with KernelSU!.
+        message: Kernel Built with clang-r510928 without KernelSU!.
         document: ${{ github.workspace }}/AnyKernel3/*.zip
