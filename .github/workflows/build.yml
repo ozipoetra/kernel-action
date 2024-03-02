@@ -1,0 +1,46 @@
+name: Build Kernel
+
+on:
+  push:
+    tags: '*'
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout kernel source
+      uses: actions/checkout@v4
+        repository: mitsu00/android_kernel_xiaomi_mt6768
+        token: ${{ secrets.MITSU_TOKEN }}
+  
+    - name: KernelSU Patch
+      run: |
+        curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
+
+    - name: Checkout zipper
+      uses: actions/checkout@v4
+      with:
+        repository: lemniskett/AnyKernel3
+        path: zipper
+
+    - name: Android kernel build
+      uses: lemniskett/android-kernel-actions@master
+      id: build
+      env:
+        NAME: [MIUI-12.5]KucingPoi-kernel
+      with:
+        arch: arm64
+        compiler: gcc/12
+        defconfig: merlin_defconfig
+        image: Image.gz-dtb
+
+    - name: Release build
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.CHANNEL_ID }}
+        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        message: Kernel Built with GCC-12 with KernelSU!, took ${{ steps.build.outputs.elapsed_time }} seconds.
+        document: ${{ steps.build.outputs.outfile }}
