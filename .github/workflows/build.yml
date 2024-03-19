@@ -14,6 +14,7 @@ jobs:
         ref: stable
         token: ${{ secrets.MITSU_TOKEN }}
         path: ${{ github.workspace }}
+        fetch-depth: 50
   
     - name: Checkout clang compiler
       run: |
@@ -35,6 +36,11 @@ jobs:
       with:
         repository: osm0sis/AnyKernel3
         path: ${{ github.workspace }}/AnyKernel3
+    
+    - name: ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        create-symlink: true
 
     - name: Android kernel build
       run: |
@@ -68,12 +74,12 @@ jobs:
         sed -i 's/do.devicecheck=1/do.devicecheck=0/g' AnyKernel3/anykernel.sh
         sed -i 's!block=/dev/block/platform/omap/omap_hsmmc.0/by-name/boot;!block=auto;!g' AnyKernel3/anykernel.sh
         sed -i 's/is_slot_device=0;/is_slot_device=auto;/g' AnyKernel3/anykernel.sh
-        sed -i "s/kernel.string=ExampleKernel by osm0sis @ xda-developers/kernel.string=[MIUI-12.5] KucingPoi Kernel by mitsuaa/g" AnyKernel3/anykernel.sh
+        sed -i "s/kernel.string=ExampleKernel by osm0sis @ xda-developers/kernel.string=KucingPoi Kernel by mitsuaa/g" AnyKernel3/anykernel.sh
         cp out/arch/arm64/boot/Image.gz-dtb AnyKernel3/
         cp out/arch/arm64/boot/dtbo.img AnyKernel3/
         cp out/arch/arm64/boot/dts/mediatek/mt6768.dtb AnyKernel3/dtb
         cd AnyKernel3
-        zip [MIUI-12.5]KucingPoi-KernelSU-$(date "+%Y-%m-%d--%H:%M:%S").zip * -r
+        zip [AOSP-A11xMIUI-12.5]KucingPoi-KernelSU-$(date "+%Y-%m-%d--%H-%M-%S").zip * -r
         
     - name: Release build
       uses: appleboy/telegram-action@master
