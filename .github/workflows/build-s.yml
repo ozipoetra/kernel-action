@@ -1,4 +1,4 @@
-name: Build Kernel-NoKSU
+name: "[TEST]Build S-Vendor Kernel"
 
 on:
   workflow_dispatch:
@@ -10,27 +10,33 @@ jobs:
     - name: Checkout kernel source
       uses: actions/checkout@v4
       with:
-        repository: mitsu00/android_kernel_xiaomi_mt6768
-        ref: miui
+        repository: mitsu00/KucingPoi
+        ref: stable
         token: ${{ secrets.MITSU_TOKEN }}
         path: ${{ github.workspace }}
+        fetch-depth: 50
   
     - name: Checkout clang compiler
       run: |
         cd ${{ github.workspace }}
-        git -c protocol.version=2 clone https://gitlab.com/LeCmnGend/proton-clang.git --no-tags --no-recurse-submodules --depth=1 -b clang-r510928 toolchains/proton-clang
+        # git -c protocol.version=2 clone https://gitlab.com/LeCmnGend/proton-clang.git --no-tags --no-recurse-submodules --depth=1 -b clang-r510928 toolchains/proton-clang
+        mkdir -p toolchains/proton-clang
+        cd toolchains/proton-clang
+        wget -q -i <(curl -Ls https://raw.githubusercontent.com/ZyCromerZ/Clang/main/Clang-main-link.txt)
+        tar -xzf Clang*
+        rm Clang*
   
-    - name: No KernelSU
+    - name: KernelSU Patch
       run: |
         cd ${{ github.workspace }}
-        sed -i 's/CONFIG_KSU=y/CONFIG_KSU=n/g' arch/arm64/configs/merlin_defconfig
+        curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
 
     - name: Checkout zipper
       uses: actions/checkout@v4
       with:
         repository: osm0sis/AnyKernel3
         path: ${{ github.workspace }}/AnyKernel3
-
+    
     - name: ccache
       uses: hendrikmuhs/ccache-action@v1.2
       with:
@@ -39,6 +45,7 @@ jobs:
     - name: Android kernel build
       run: |
         cd ${{ github.workspace }}
+        wget https://raw.githubusercontent.com/ozipoetra/kernel-action/master/merlin_s_defconfig -O arch/arm64/configs/merlin_defconfig
         export PATH="$PWD/toolchains/proton-clang/bin:$PATH"
         export ARCH=arm64
         export SUBARCH=arm64
@@ -68,17 +75,17 @@ jobs:
         sed -i 's/do.devicecheck=1/do.devicecheck=0/g' AnyKernel3/anykernel.sh
         sed -i 's!block=/dev/block/platform/omap/omap_hsmmc.0/by-name/boot;!block=auto;!g' AnyKernel3/anykernel.sh
         sed -i 's/is_slot_device=0;/is_slot_device=auto;/g' AnyKernel3/anykernel.sh
-        sed -i "s/kernel.string=ExampleKernel by osm0sis @ xda-developers/kernel.string=[MIUI-12.5] KucingPoi Kernel by mitsuaa/g" AnyKernel3/anykernel.sh
+        sed -i "s/kernel.string=ExampleKernel by osm0sis @ xda-developers/kernel.string=KucingPoi Kernel by mitsuaa/g" AnyKernel3/anykernel.sh
         cp out/arch/arm64/boot/Image.gz-dtb AnyKernel3/
         cp out/arch/arm64/boot/dtbo.img AnyKernel3/
         cp out/arch/arm64/boot/dts/mediatek/mt6768.dtb AnyKernel3/dtb
         cd AnyKernel3
-        zip [MIUI-12.5]KucingPoi-$(date "+%Y-%m-%d--%H:%M:%S").zip * -r
+        zip [TEST][MIUI13-S]KucingPoi-KernelSU-$(date "+%Y-%m-%d--%H-%M-%S").zip * -r
         
     - name: Release build
       uses: appleboy/telegram-action@master
       with:
         to: ${{ secrets.CHANNEL_ID }}
         token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        message: Kernel Built with clang-r510928 without KernelSU!.
+        message: "[TEST!] Kernel Built with ZyCromerZ-clang 19 with KernelSU!.\n\n* DWYOR!\n* Not Tested"
         document: ${{ github.workspace }}/AnyKernel3/*.zip

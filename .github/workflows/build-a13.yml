@@ -1,4 +1,4 @@
-name: Build Kernel
+name: Build Kernel A13
 
 on:
   workflow_dispatch:
@@ -14,7 +14,7 @@ jobs:
         ref: stable
         token: ${{ secrets.MITSU_TOKEN }}
         path: ${{ github.workspace }}
-        fetch-depth: 50
+        fetch-depth: 100
   
     - name: Checkout clang compiler
       run: |
@@ -36,7 +36,7 @@ jobs:
       with:
         repository: osm0sis/AnyKernel3
         path: ${{ github.workspace }}/AnyKernel3
-    
+
     - name: ccache
       uses: hendrikmuhs/ccache-action@v1.2
       with:
@@ -45,6 +45,10 @@ jobs:
     - name: Android kernel build
       run: |
         cd ${{ github.workspace }}
+        git config --global user.email "dev@ozip.my.id"
+        git config --global user.name "mitsu00"
+        # git revert --no-edit 
+        wget https://raw.githubusercontent.com/ozipoetra/kernel-action/master/merlin_defconfig -O arch/arm64/configs/merlin_defconfig
         export PATH="$PWD/toolchains/proton-clang/bin:$PATH"
         export ARCH=arm64
         export SUBARCH=arm64
@@ -76,10 +80,8 @@ jobs:
         sed -i 's/is_slot_device=0;/is_slot_device=auto;/g' AnyKernel3/anykernel.sh
         sed -i "s/kernel.string=ExampleKernel by osm0sis @ xda-developers/kernel.string=KucingPoi Kernel by mitsuaa/g" AnyKernel3/anykernel.sh
         cp out/arch/arm64/boot/Image.gz-dtb AnyKernel3/
-        cp out/arch/arm64/boot/dtbo.img AnyKernel3/
-        cp out/arch/arm64/boot/dts/mediatek/mt6768.dtb AnyKernel3/dtb
         cd AnyKernel3
-        zip [AOSP-A11xMIUI-12.5]KucingPoi-KernelSU-$(date "+%Y-%m-%d--%H-%M-%S").zip * -r
+        zip [AOSP-A13xA14]KucingPoi-KernelSU-$(date "+%Y-%m-%d--%H-%M-%S").zip * -r
         
     - name: Release build
       uses: appleboy/telegram-action@master
