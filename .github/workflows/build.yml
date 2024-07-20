@@ -12,6 +12,9 @@ jobs:
       with:
         repository: ozipoetra/KucingPoi
         ref: stable
+        token: ${{ secrets.KUCING_PAT }}
+        path: ${{ github.workspace }}
+        fetch-depth: 1
   
     - name: Checkout clang compiler
       run: |
