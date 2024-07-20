@@ -10,11 +10,8 @@ jobs:
     - name: Checkout kernel source
       uses: actions/checkout@v4
       with:
-        repository: mitsu00/KucingPoi
+        repository: ozipoetra/KucingPoi
         ref: stable
-        token: ${{ secrets.MITSU_TOKEN }}
-        path: ${{ github.workspace }}
-        fetch-depth: 50
   
     - name: Checkout clang compiler
       run: |
