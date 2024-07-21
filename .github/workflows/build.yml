@@ -69,9 +69,9 @@ jobs:
     - name: Make AnyKernel3
       run: |
         cd ${{ github.workspace }}
-        sed -i 's/do.devicecheck=1/do.devicecheck=0/g' AnyKernel3/anykernel.sh
-        sed -i 's!block=/dev/block/platform/omap/omap_hsmmc.0/by-name/boot;!block=auto;!g' AnyKernel3/anykernel.sh
-        sed -i 's/is_slot_device=0;/is_slot_device=auto;/g' AnyKernel3/anykernel.sh
+        sed -i 's/DO.DEVICECHECK=1/DO.DEVICECHECK=0/g' AnyKernel3/anykernel.sh
+        sed -i 's!BLOCK=/dev/block/platform/omap/omap_hsmmc.0/by-name/boot;!BLOCK=auto;!g' AnyKernel3/anykernel.sh
+        sed -i 's/IS_SLOT_DEVICE=0;/IS_SLOT_DEVICE=auto;/g' AnyKernel3/anykernel.sh
         sed -i "s/kernel.string=ExampleKernel by osm0sis @ xda-developers/kernel.string=KucingPoi Kernel by mitsuaa/g" AnyKernel3/anykernel.sh
         cp out/arch/arm64/boot/Image.gz-dtb AnyKernel3/
         cp out/arch/arm64/boot/dtbo.img AnyKernel3/
