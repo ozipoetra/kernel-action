@@ -1,0 +1,83 @@
+name: Build Kernel
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout kernel source
+      uses: actions/checkout@v4
+      with:
+        repository: mitsuav/KucingPoi
+        ref: stable
+        # token: ${{ secrets.KUCING_PAT }}
+        path: ${{ github.workspace }}
+        fetch-depth: 1
+  
+    - name: Checkout clang compiler
+      run: |
+        cd ${{ github.workspace }}
+        # git -c protocol.version=2 clone https://gitlab.com/LeCmnGend/proton-clang.git --no-tags --no-recurse-submodules --depth=1 -b clang-r510928 toolchains/proton-clang
+        mkdir -p toolchains/proton-clang
+        cd toolchains/proton-clang
+        wget -q -i <(curl -Ls https://raw.githubusercontent.com/ZyCromerZ/Clang/main/Clang-main-link.txt)
+        tar -xzf Clang*
+        rm Clang*
+  
+    - name: KernelSU Patch
+      run: |
+        cd ${{ github.workspace }}
+        curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s v0.9.5
+
+    - name: Checkout zipper
+      uses: actions/checkout@v4
+      with:
+        repository: osm0sis/AnyKernel3
+        path: ${{ github.workspace }}/AnyKernel3
+
+    - name: Android kernel build
+      run: |
+        cd ${{ github.workspace }}
+        export PATH="$PWD/toolchains/proton-clang/bin:$PATH"
+        export ARCH=arm64
+        export SUBARCH=arm64
+        export CROSS_COMPILE=aarch64-linux-gnu-
+        export CROSS_COMPILE_COMPAT=arm-linux-gnueabi-
+        export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+        export CC=clang
+        export LD=ld.lld
+        export AR=llvm-ar
+        export NM=llvm-nm
+        export OBJCOPY=llvm-objcopy
+        export OBJDUMP=llvm-objdump
+        export STRIP=llvm-strip
+        export KBUILD_COMPILER_STRING="$(clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')"
+        export KBUILD_BUILD_HOST=Animex.biz.id
+        export KBUILD_BUILD_USER=mitsuaa😘
+        make -j$(nproc --all) O=out ARCH=arm64 CC=clang CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- CROSS_COMPILE_COMPAT=arm-linux-gnueabi- LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip merlin_miui_defconfig
+        make -j$(nproc --all) O=out ARCH=arm64 savedefconfig CC=clang CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- CROSS_COMPILE_COMPAT=arm-linux-gnueabi- LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip
+        cp -f out/defconfig arch/arm64/configs/merlin_miui_defconfig
+        make -j$(nproc --all) O=out ARCH=arm64 CC=clang CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- CROSS_COMPILE_COMPAT=arm-linux-gnueabi- LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip
+
+    - name: Make AnyKernel3
+      run: |
+        cd ${{ github.workspace }}
+        sed -i 's/do.devicecheck=1/do.devicecheck=0/g' AnyKernel3/anykernel.sh
+        sed -i 's!BLOCK=/dev/block/platform/omap/omap_hsmmc.0/by-name/boot;!BLOCK=auto;!g' AnyKernel3/anykernel.sh
+        sed -i 's/IS_SLOT_DEVICE=0;/IS_SLOT_DEVICE=auto;/g' AnyKernel3/anykernel.sh
+        sed -i "s/kernel.string=ExampleKernel by osm0sis @ xda-developers/kernel.string=KucingPoi Kernel by mitsuaa/g" AnyKernel3/anykernel.sh
+        cp out/arch/arm64/boot/Image.gz-dtb AnyKernel3/
+        cp out/arch/arm64/boot/dtbo.img AnyKernel3/
+        cp out/arch/arm64/boot/dts/mediatek/mt6768.dtb AnyKernel3/dtb
+        cd AnyKernel3
+        zip [AOSP-A11xMIUI-12.5]KucingPoi-$(date "+%Y-%m-%d--%H-%M-%S").zip * -r
+        
+    - name: Release build
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.CHANNEL_ID }}
+        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        message: Kernel Built with ZyCromerZ-clang 19 with KernelSU!.
+        document: ${{ github.workspace }}/AnyKernel3/*.zip
