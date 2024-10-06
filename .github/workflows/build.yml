@@ -10,8 +10,8 @@ jobs:
     - name: Checkout kernel source
       uses: actions/checkout@v4
       with:
-        repository: mitsuav/android_kernel_xiaomi_mt6768
-        ref: elts
+        repository: mitsuav/KucingPoi
+        ref: stable
         # token: ${{ secrets.KUCING_PAT }}
         path: ${{ github.workspace }}
         fetch-depth: 1
