@@ -9,7 +9,7 @@ jobs:
     steps:
     - name: Checkout kernel source
       run: |
-        git clone --depth=1 https://ozipoetra120@dev.azure.com/ozipoetra120/merlinx/_git/kernel_xiaomi_mt6768 -b openela ${{ github.workspace }}
+        git clone --depth=1 https://ozipoetra120@dev.azure.com/ozipoetra120/merlinx/_git/kernel_xiaomi_mt6768 -b test ${{ github.workspace }}
   
     - name: Checkout clang compiler
       run: |
