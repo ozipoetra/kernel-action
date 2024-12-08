@@ -64,8 +64,8 @@ jobs:
         sed -i 's/IS_SLOT_DEVICE=0;/IS_SLOT_DEVICE=auto;/g' AnyKernel3/anykernel.sh
         sed -i "s/kernel.string=ExampleKernel by osm0sis @ xda-developers/kernel.string=KucingPoi Kernel by mitsuaa/g" AnyKernel3/anykernel.sh
         cp out/arch/arm64/boot/Image.gz-dtb AnyKernel3/
-        #cp out/arch/arm64/boot/dtbo.img AnyKernel3/
-        #cp out/arch/arm64/boot/dts/mediatek/mt6768.dtb AnyKernel3/dtb
+        cp out/arch/arm64/boot/dtbo.img AnyKernel3/
+        cp out/arch/arm64/boot/dts/mediatek/mt6768.dtb AnyKernel3/dtb
         cd AnyKernel3
         zip [AOSP-A13+]KucingPoi-$(date "+%Y-%m-%d--%H-%M-%S").zip * -r
         
