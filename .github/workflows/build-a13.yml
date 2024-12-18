@@ -24,7 +24,7 @@ jobs:
     - name: KernelSU Patch
       run: |
         cd ${{ github.workspace }}
-        curl -LSs "https://raw.githubusercontent.com/backslashxx/KernelSU/refs/heads/legacy/kernel/setup.sh" | bash
+        curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU/next/kernel/setup.sh" | bash
 
     - name: Checkout zipper
       uses: actions/checkout@v4
