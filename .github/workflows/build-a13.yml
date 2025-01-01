@@ -25,6 +25,16 @@ jobs:
       run: |
         cd ${{ github.workspace }}
         curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next-susfs-4.14
+        git clone https://gitlab.com/simonpunk/susfs4ksu.git -b kernel-4.14
+        cp ./susfs4ksu/kernel_patches/include/linux/susfs.h ${{ github.workspace }}/include/linux/
+        cp ./susfs4ksu/kernel_patches/fs/susfs.c ${{ github.workspace }}/fs/
+        cp ./susfs4ksu/kernel_patches/50_add_susfs_in_kernel-4.14.patch ${{ github.workspace }}
+        patch -p1 < 50_add_susfs_in_kernel-4.14.patch || echo "Patch failed, skipping."
+        sed -i '/struct ratelimit_state ratelimit;/a\#if defined(CONFIG_KSU_SUSFS) && !defined(ANDROID_KABI_RESERVE)\nu64 android_kabi_reserved2;\n#endif\nANDROID_KABI_RESERVE(1);\nANDROID_KABI_RESERVE(2);' ${{ github.workspace }}/include/linux/sched/user.h
+        rm -rf susfs4ksu
+        echo "CONFIG_KSU=y" >> ${{ github.workspace }}/arch/arm64/config/merlin_defconfig
+        echo "CONFIG_KSU_SUSFS=y" >> ${{ github.workspace }}/arch/arm64/config/merlin_defconfig
+        echo "CONFIG_KSU_SUSFS_SUS_SU=y" >> ${{ github.workspace }}/arch/arm64/config/merlin_defconfig
 
     - name: Checkout zipper
       uses: actions/checkout@v4
