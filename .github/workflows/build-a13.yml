@@ -35,6 +35,9 @@ jobs:
         echo "CONFIG_KSU=y" >> ${{ github.workspace }}/arch/arm64/configs/merlin_defconfig
         echo "CONFIG_KSU_SUSFS=y" >> ${{ github.workspace }}/arch/arm64/configs/merlin_defconfig
         echo "CONFIG_KSU_SUSFS_SUS_SU=y" >> ${{ github.workspace }}/arch/arm64/configs/merlin_defconfig
+        echo "CONFIG_OVERLAY_FS=y" >> ${{ github.workspace }}/arch/arm64/configs/merlin_defconfig
+        echo "CONFIG_OVERLAY_FS_REDIRECT_DIR=y" >> ${{ github.workspace }}/arch/arm64/configs/merlin_defconfig
+        echo "CONFIG_OVERLAY_FS_INDEX=y" >> ${{ github.workspace }}/arch/arm64/configs/merlin_defconfig
 
     - name: Checkout zipper
       uses: actions/checkout@v4
